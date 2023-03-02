@@ -1,37 +1,50 @@
-import React,{useState} from 'react';
+import React,{useEffect, useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Button, Toolbar, Typography,Box,IconButton,Badge,Avatar ,Menu,MenuItem, Grid} from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-// import { makeStyles } from '@material-ui/core/styles';
-import { logout } from '../store/authSlice';
+import { logout,update } from '../store/authSlice';
 import Dashboard from './dashboard';
+import { Outlet, useNavigate } from 'react-router-dom';
 
-// const useStyles = makeStyles((theme) => ({
-//   root: {
-//     flexGrow: 1,
-//   },
-//   title: {
-//     flexGrow: 1,
-//   },
-// }));
 
 function AdminPanel() {
-  // const classes = useStyles();
+  const navigate= useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  // const [file, setFile] = useState();
+
+
   const user = useSelector((state) => state.auth.user);
+  const profilePic = useSelector((state) => state.auth.profilePic);
   const dispatch = useDispatch();
 
+  // useEffect(()=> {
+  //   if(user===null){
+  //     navigate('/');
+  //   }
+  // },[navigate,user]);
+
   const handleLogout = () => {
+    setAnchorEl(null);
     dispatch(logout());
+    navigate('/');
   };
   const handleProfileMenuOpen = (event) => {
    setAnchorEl(event.currentTarget);
    console.log(anchorEl)
   };
+
+  const handleProfileChange= (e) => {
+      console.log(e.target.files);
+      // setFile();
+      dispatch(update(URL.createObjectURL(e.target.files[0])))
+      setAnchorEl(null);
+  }
+
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+
   const menuId = 'primary-search-account-menu';
   return (
     <Grid container spacing={2}>
@@ -39,13 +52,12 @@ function AdminPanel() {
       <AppBar position="static" color="inherit" >
         <Toolbar  style={{display:"flex",justifyContent:"space-between"}} >
           <Typography variant="h6" >
-            Admin Panel
+            {user?.type === "customer"? "Customer" :"Admin"} Panel
           </Typography>
-          {/* {user && (
-            <Button color="inherit" onClick={handleLogout}>
-              Logout
-            </Button>
-          )} */}
+         {
+          user && <Typography variant="h5" color={"GrayText"} >Welcome {user?.type === "customer"? "Customer" :"Admin"} </Typography>
+         }
+      
             <Box sx={{ display: { xs: 'flex' } }}>
             <IconButton
               size="large"
@@ -71,7 +83,7 @@ function AdminPanel() {
             >
  <Avatar
   alt="Remy Sharp"
-  src={require("../assets/images/profile.jpg")}
+  src={profilePic}
   sx={{ width: 46, height: 46 }}
 />
             </IconButton>
@@ -90,19 +102,25 @@ function AdminPanel() {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem onClick={handleClose}>Change Avatar</MenuItem>
-                <MenuItem onClick={handleClose}>Log Out</MenuItem>
+                <MenuItem >
+                <input
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        id="contained-button-file"
+        onChange={handleProfileChange}
+      />
+       <label htmlFor="contained-button-file">
+       Change Avatar
+      </label>
+                 </MenuItem>
+                <MenuItem onClick={handleLogout}>Log Out</MenuItem>
               </Menu>
            </div>
           </Box>
          
         </Toolbar>
-      
-       
       </AppBar>
-      </Grid>
-      <Grid item xs={12} style={{p:2}} >
-      <Dashboard />
       </Grid>
     </Grid>
   );
